@@ -1,25 +1,63 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Redirecting to Form...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+            background-color: #f0ebf8; /* Matches Google Forms purple tint */
+            color: #3c4043;
+            text-align: center; 
+        }
+        .container { padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #673ab7; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
 <body>
-    <h3>Redirecting to form with your location...</h3>
+    <div class="container">
+        <h2>Fetching your location...</h2>
+        <div class="loader"></div>
+        <p>Please click <strong>"Allow"</strong> if your browser asks for permission.</p>
+    </div>
+
     <script>
-        // 1. Get current position
-        navigator.geolocation.getCurrentPosition(success, error);
+        // 1. Your specific Google Form base URL (ending exactly at the '=')
+        const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeXoBJdLIvpDpFMg3RxuhIMUHBp538kmXo5KrSrvS39PzT_-A/viewform?usp=pp_url&entry.1445311651=";
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(success, error, {enableHighAccuracy: true});
+        } else {
+            alert("Geolocation is not supported by this browser.");
+            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSeXoBJdLIvpDpFMg3RxuhIMUHBp538kmXo5KrSrvS39PzT_-A/viewform";
+        }
 
         function success(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            const coords = lat + "," + lng;
 
-            // 2. Your Pre-filled Google Form URL (Replace the ID and Entry ID)
-            const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeXoBJdLIvpDpFMg3RxuhIMUHBp538kmXo5KrSrvS39PzT_-A/viewform?usp=pp_url&entry.1445311651=REPLACE_ME" + coords;
-
-            // 3. Redirect the user
-            window.location.href = formUrl;
+            // 2. Turn coordinates into a real address (Reverse Geocoding)
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Use the readable address if found, otherwise fallback to lat,long
+                    const locationValue = data.display_name || (lat + "," + lng);
+                    window.location.href = baseUrl + encodeURIComponent(locationValue);
+                })
+                .catch(() => {
+                    // Fallback to coordinates if the address service is down
+                    window.location.href = baseUrl + lat + "," + lng;
+                });
         }
 
         function error() {
-            alert("Unable to retrieve your location. Please fill it manually.");
+            alert("Location access denied. Please fill out the form manually.");
             window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSeXoBJdLIvpDpFMg3RxuhIMUHBp538kmXo5KrSrvS39PzT_-A/viewform";
         }
     </script>
