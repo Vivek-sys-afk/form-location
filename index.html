@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h3>Redirecting to form with your location...</h3>
+    <script>
+        // 1. Get current position
+        navigator.geolocation.getCurrentPosition(success, error);
+
+        function success(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const coords = lat + "," + lng;
+
+            // 2. Your Pre-filled Google Form URL (Replace the ID and Entry ID)
+            const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeXoBJdLIvpDpFMg3RxuhIMUHBp538kmXo5KrSrvS39PzT_-A/viewform?usp=pp_url&entry.1445311651=REPLACE_ME" + coords;
+
+            // 3. Redirect the user
+            window.location.href = formUrl;
+        }
+
+        function error() {
+            alert("Unable to retrieve your location. Please fill it manually.");
+            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSeXoBJdLIvpDpFMg3RxuhIMUHBp538kmXo5KrSrvS39PzT_-A/viewform";
+        }
+    </script>
+</body>
+</html>
